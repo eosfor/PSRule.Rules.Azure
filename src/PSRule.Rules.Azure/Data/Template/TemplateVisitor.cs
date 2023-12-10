@@ -230,12 +230,12 @@ namespace PSRule.Rules.Azure.Data.Template
                 if (_ResourceIds.TryGetValue(resourceId, out resource))
                     return true;
 
-                var matchingRecord = _ResourceIds.FirstOrDefault(r => r.Key.EndsWith(resourceId.Split('/').LastOrDefault()));
-                if (matchingRecord.Key != null)
-                {
-                    if (_ResourceIds.TryGetValue(matchingRecord.Value.Id, out resource))
-                        return true;
-                }
+                // var matchingRecord = _ResourceIds.FirstOrDefault(r => r.Key.EndsWith(resourceId.Split('/').LastOrDefault()));
+                // if (matchingRecord.Key != null)
+                // {
+                //     if (_ResourceIds.TryGetValue(matchingRecord.Value.Id, out resource))
+                //         return true;
+                // }
 
                 resource = null;
                 return false;
@@ -1292,10 +1292,12 @@ namespace PSRule.Rules.Azure.Data.Template
             var scope = context.TryParentResourceId(resource, out var parentIds) && parentIds != null && parentIds.Length > 0 ? parentIds[0] : null;
 
             string resourceId = null;
-            if (context.Deployment.DeploymentScope == DeploymentScope.ResourceGroup)
+            // special case means we know subscriptionId and resourceGroupName => the scope is subscriptionId/resourceGroupName
+            if ((context.Deployment.DeploymentScope == DeploymentScope.ResourceGroup) || IsDeploymentResource(type))
                 resourceId = ResourceHelper.CombineResourceId(subscriptionId, resourceGroupName, type, name, scope: scope);
 
-            if (context.Deployment.DeploymentScope == DeploymentScope.Subscription)
+            // skip this when special case has been processed already
+            if (context.Deployment.DeploymentScope == DeploymentScope.Subscription && !IsDeploymentResource(type))
                 resourceId = ResourceHelper.CombineResourceId(subscriptionId, null, type, name);
 
             if (context.Deployment.DeploymentScope == DeploymentScope.ManagementGroup || context.Deployment.DeploymentScope == DeploymentScope.Tenant)
