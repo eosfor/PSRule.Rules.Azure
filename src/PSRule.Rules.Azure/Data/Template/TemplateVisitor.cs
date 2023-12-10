@@ -230,6 +230,20 @@ namespace PSRule.Rules.Azure.Data.Template
                 if (_ResourceIds.TryGetValue(resourceId, out resource))
                     return true;
 
+                if (null != ResourceGroup.Name)
+                {
+                    var rgSubstring = $"/resourceGroups/{ResourceGroup.Name}";
+                    int index = resourceId.IndexOf("/providers");
+
+                    if (index != -1)
+                    {
+                        string modified = resourceId.Insert(index, rgSubstring);
+                        if (_ResourceIds.TryGetValue(modified, out resource))
+                            return true;
+                    }
+                }
+
+
                 resource = null;
                 return false;
             }
