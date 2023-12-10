@@ -230,6 +230,13 @@ namespace PSRule.Rules.Azure.Data.Template
                 if (_ResourceIds.TryGetValue(resourceId, out resource))
                     return true;
 
+                var matchingRecord = _ResourceIds.FirstOrDefault(r => r.Key.EndsWith(resourceId.Split('/').LastOrDefault()));
+                if (matchingRecord.Key != null)
+                {
+                    if (_ResourceIds.TryGetValue(matchingRecord.Value.Id, out resource))
+                        return true;
+                }
+
                 resource = null;
                 return false;
             }
